@@ -19,11 +19,23 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY package.json package-lock.json ./
+
+RUN npm ci --omit=dev --ignore-scripts \
+    && npm cache clean --force
+
 COPY . .
+
+RUN groupadd --system app \
+    && useradd --system --gid app --home-dir /app --no-create-home app \
+    && chown -R app:app /app
 
 EXPOSE 5000
 
+ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV NODE_ENV=production
+
+USER app
 
 CMD ["python", "main.py"] 
